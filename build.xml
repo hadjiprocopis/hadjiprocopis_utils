@@ -1,3 +1,5 @@
+<!-- Author: Andreas Hadjiprocopis (andreashad2@gmail.com) -->
+
 <project name="ahp.org.Utils" default="dist" basedir=".">
 	<description>
 		build file for ahp.org.Utils
@@ -14,6 +16,23 @@
 	<property name="dist" location="../dist"/>
 	<property name="jarPath" value="${dist}/lib"/>
 	<property name="jarName" value="${projectName}.jar"/>
+
+	<target name="git-push" depends="init">
+		<exec executable="git">
+			<arg value="add"/>
+			<arg value="*"/>
+		</exec>
+		<exec executable="git">
+			<arg value="commit"/>
+			<arg value="-am"/>
+			<arg value="commit: ${MYTIMESTAMP}"/>
+		</exec>
+		<exec executable="git">
+			<arg value="push"/>
+			<arg value="git@github.com:hadjiprocopis/hadjiprocopis_utils.git"/>
+			<arg value="--all"/>
+		</exec>
+	</target>
 
 	<path id='compile.classpath'>
 		<fileset dir='/usr/local/apache-commons/lib'>
@@ -44,7 +63,7 @@
 	<target name="init">
 		<!-- Create the time stamp -->
 		<tstamp>
-			<format property="FUCKYOUTIMESTAMP"
+			<format property="MYTIMESTAMP"
 			pattern="dd_MM_yyyy.HH_mm"/>
 		</tstamp>
 		<!-- Create the build directory structure used by compile -->
@@ -64,63 +83,11 @@
 		</javac>
 	</target>
 
-	<target name="compiletest" depends="dist"
-		description="compile the test files"
-	>
-		<!-- Compile the java code from ${test} and leave there -->
-		<javac srcdir="${test}" destdir="${test}"
-			includeantruntime="false"
-			debug="${debugInfo}"
-			verbose="${verboseCompile}"
-		>
-			<classpath refid='compiletest.classpath'/>
-		</javac>
-	</target>
-
-	<target name="test_simple" depends="compiletest"
-		description="run the test case for 1D"
-		id="test_simple"
-	>
-		<java classname='TestCartesianProduct_simple'
-			fork='true'
-		>
-			<jvmarg value="-enableassertions"/>
-			<classpath refid='runtest.classpath'/>
-			<classpath>
-			      <fileset dir="${jarPath}">
-				<include name="**/${jarName}"/>
-			      </fileset>
-			</classpath>
-		</java>
-	</target>
-	<target name="test_speed" depends="compiletest"
-		description="run the test case testing for speed on a large product"
-		id="test_speed"
-	>
-		<java classname='TestCartesianProduct_speed'
-			fork='true'
-		>
-			<jvmarg value="-enableassertions"/>
-			<classpath refid='runtest.classpath'/>
-			<classpath>
-			      <fileset dir="${jarPath}">
-				<include name="**/${jarName}"/>
-			      </fileset>
-			</classpath>
-		</java>
-	</target>
-	<target name="test" depends="compiletest"
-		description="run ALL the tests"
-	>
-		<!-- calling many targets from 1 target -->
-		<antcall target="test_simple"/>
-		<antcall target="test_speed"/>
-	</target>
 
 	<target name="backup" depends="init"
 		description="make a backup"
 	>
-		<tar destfile="${backup}/${FUCKYOUTIMESTAMP}.tgz"
+		<tar destfile="${backup}/${MYTIMESTAMP}.tgz"
 			compression="gzip"
 		>
 			<tarfileset dir="${test}" preserveLeadingSlashes="true" casesensitive="yes">
