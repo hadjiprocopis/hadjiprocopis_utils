@@ -1,0 +1,168 @@
+<project name="ahp.org.Utils" default="dist" basedir=".">
+	<description>
+		build file for ahp.org.Utils
+	</description>
+	<!-- set global properties for this build -->
+	<property name="debugInfo" value="true"/>
+	<property name="verboseCompile" value="false"/>
+	<property name="projectName" value="${ant.project.name}"/>
+	<property name="MainClassName" value="${projectName}.${projectName}"/>
+	<property name="src" location="src"/>
+	<property name="backup" location=".BACKUP"/>
+	<property name="test" location="test"/>
+	<property name="build" location="build"/>
+	<property name="dist" location="../dist"/>
+	<property name="jarPath" value="${dist}/lib"/>
+	<property name="jarName" value="${projectName}.jar"/>
+
+	<path id='compile.classpath'>
+		<fileset dir='/usr/local/apache-commons/lib'>
+			 <include name='commons-math-3.6.jar'/>
+		</fileset>
+	</path>
+	<path id='compiletest.classpath'>
+		<path refid='compile.classpath'/>
+		<fileset dir='${jarPath}'>
+			 <include name='${jarName}'/>
+		</fileset>
+	</path>
+	<path id='run.classpath'>
+		<path refid='compile.classpath'/>
+		<path location='src'/>
+		<fileset dir='${jarPath}'>
+			 <include name='${jarName}'/>
+		</fileset>
+	</path>
+	<path id='runtest.classpath'>
+		<path refid='compiletest.classpath'/>
+		<path location='test'/>
+		<fileset dir='${jarPath}'>
+			 <include name='${jarName}'/>
+		</fileset>
+	</path>
+
+	<target name="init">
+		<!-- Create the time stamp -->
+		<tstamp>
+			<format property="FUCKYOUTIMESTAMP"
+			pattern="dd_MM_yyyy.HH_mm"/>
+		</tstamp>
+		<!-- Create the build directory structure used by compile -->
+		<mkdir dir="${build}"/>
+	</target>
+
+	<target name="compile" depends="init"
+		description="compile the source"
+	>
+		<!-- Compile the java code from ${src} into ${build} -->
+		<javac srcdir="${src}" destdir="${build}"
+			includeantruntime="false"
+			debug="${debugInfo}"
+			verbose="${verboseCompile}"
+		>
+			<classpath refid='compile.classpath'/>
+		</javac>
+	</target>
+
+	<target name="compiletest" depends="dist"
+		description="compile the test files"
+	>
+		<!-- Compile the java code from ${test} and leave there -->
+		<javac srcdir="${test}" destdir="${test}"
+			includeantruntime="false"
+			debug="${debugInfo}"
+			verbose="${verboseCompile}"
+		>
+			<classpath refid='compiletest.classpath'/>
+		</javac>
+	</target>
+
+	<target name="test_simple" depends="compiletest"
+		description="run the test case for 1D"
+		id="test_simple"
+	>
+		<java classname='TestCartesianProduct_simple'
+			fork='true'
+		>
+			<jvmarg value="-enableassertions"/>
+			<classpath refid='runtest.classpath'/>
+			<classpath>
+			      <fileset dir="${jarPath}">
+				<include name="**/${jarName}"/>
+			      </fileset>
+			</classpath>
+		</java>
+	</target>
+	<target name="test_speed" depends="compiletest"
+		description="run the test case testing for speed on a large product"
+		id="test_speed"
+	>
+		<java classname='TestCartesianProduct_speed'
+			fork='true'
+		>
+			<jvmarg value="-enableassertions"/>
+			<classpath refid='runtest.classpath'/>
+			<classpath>
+			      <fileset dir="${jarPath}">
+				<include name="**/${jarName}"/>
+			      </fileset>
+			</classpath>
+		</java>
+	</target>
+	<target name="test" depends="compiletest"
+		description="run ALL the tests"
+	>
+		<!-- calling many targets from 1 target -->
+		<antcall target="test_simple"/>
+		<antcall target="test_speed"/>
+	</target>
+
+	<target name="backup" depends="init"
+		description="make a backup"
+	>
+		<tar destfile="${backup}/${FUCKYOUTIMESTAMP}.tgz"
+			compression="gzip"
+		>
+			<tarfileset dir="${test}" preserveLeadingSlashes="true" casesensitive="yes">
+				<patternset>
+					<include name="**/*.java"/>
+				</patternset>
+			</tarfileset>
+			<tarfileset dir="${src}" preserveLeadingSlashes="true" casesensitive="yes">
+				<patternset>
+					<include name="**/*.java"/>
+				</patternset>
+			</tarfileset>
+			<fileset dir="." casesensitive="yes">
+				<filename name="build.xml"/>
+			</fileset>
+		</tar>
+	</target>
+
+	<target name="dist" depends="compile"
+				description="generate the distribution"
+	>
+		<!-- Create the distribution directory -->
+		<mkdir dir="${jarPath}"/>
+
+		<!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
+		<!-- <jar jarfile="${jarPath}/MyProject-${DSTAMP}.jar" basedir="${build}"/>-->
+		<jar jarfile="${jarPath}/${jarName}" basedir="${build}"/>
+	</target>
+
+	<target name="all" depends="clean,compile,dist"/>
+
+	<target name="clean"
+		description="clean up"
+	>
+		<!-- Delete the ${build} and ${dist} directory trees -->
+				<delete dir="${build}"/>
+		<delete>
+			<fileset dir="${test}" includes="**/*.class"/>
+		</delete>
+		<delete>
+			<fileset dir="${jarPath}" includes="**/${jarName}"/>
+		</delete>
+
+	</target>
+</project>
