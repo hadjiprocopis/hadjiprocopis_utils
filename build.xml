@@ -156,10 +156,10 @@
 		description="clean up"
 	>
 		<!-- Delete the ${build} and ${dist} directory trees -->
-				<delete dir="${build}"/>
-		<delete>
+		<delete dir="${build}"/>
+		<!--<delete>
 			<fileset dir="${test}" includes="**/*.class"/>
-		</delete>
+		</delete>-->
 		<delete>
 			<fileset dir="${jarPath}" includes="**/${jarName}"/>
 		</delete>
